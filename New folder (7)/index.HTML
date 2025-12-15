@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEO CARE | MEDLINK</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700;900&family=Rajdhani:wght@500;700&display=swap');
+
+        :root {
+            --primary-color: #00f2ff;
+            --secondary-color: #0a1118;
+            --accent-color: #7000ff;
+            --text-color: #e0f7ff;
+            --success-color: #00ff9d;
+            --warning-color: #ffb800;
+            --danger-color: #ff2a2a;
+            --glass-bg: rgba(10, 17, 24, 0.65);
+            --glass-border: 1px solid rgba(0, 242, 255, 0.15);
+            --neon-glow: 0 0 15px rgba(0, 242, 255, 0.4);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #050505;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        /* --- خلفية شبكية سينمائية --- */
+        .cyber-grid {
+            position: fixed;
+            top: 0; left: 0; width: 200vw; height: 200vh;
+            background-image: 
+                linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: gridMove 20s linear infinite;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 50%, #000000 100%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* --- Scanline Effect --- */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        /* --- Intro Screen (Boot Sequence) --- */
+        .intro-container {
+            position: absolute;
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: #000;
+            z-index: 2000;
+        }
+
+        .nexus-logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 4em;
+            font-weight: 700;
+            letter-spacing: 5px;
+            color: white;
+            text-shadow: 2px 2px 0px var(--accent-color), -2px -2px 0px var(--primary-color);
+            animation: glitch 1s infinite alternate;
+            margin-bottom: 20px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .boot-log {
+            font-family: 'Courier New', monospace;
+            color: var(--primary-color);
+            font-size: 0.9em;
+            text-align: left;
+            width: 350px;
+            height: 100px;
+            overflow: hidden;
+            border-left: 2px solid var(--primary-color);
+            padding-left: 10px;
+            opacity: 0.8;
+        }
+
+        /* --- Main Layout --- */
+        .main-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* --- Selection Cards --- */
+        .cards-wrapper {
+            display: flex;
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .nav-card {
+            width: 280px;
+            height: 380px;
+            background: rgba(15, 25, 35, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .nav-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: var(--primary-color);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+            transform-origin: left;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-15px);
+            background: rgba(15, 25, 35, 0.9);
+            box-shadow: 0 20px 40px rgba(0, 242, 255, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .nav-card:hover::before { transform: scaleX(1); }
+
+        .card-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .nav-card:hover .card-icon { transform: scale(1.1) rotate(5deg); }
+
+        .card-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .card-desc {
+            font-size: 0.9em;
+            color: #8b9bb4;
+            text-align: center;
+            padding: 0 20px;
+            line-height: 1.5;
+        }
+
+        /* --- Universal Panel Styles --- */
+        .panel {
+            position: absolute;
+            width: 90%;
+            max-width: 900px;
+            background: rgba(10, 16, 26, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: 4px solid var(--primary-color);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            display: none;
+            opacity: 0;
+            transform: translateX(50px);
+            z-index: 100;
+        }
+
+        .panel.active {
+            display: block;
+            animation: panelEntrance 0.6s forwards;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .panel-title {
+            font-size: 2em;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .status-badge {
+            font-size: 0.5em;
+            vertical-align: middle;
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid var(--primary-color);
+            padding: 5px 10px;
+            border-radius: 12px;
+            margin-right: 10px;
+        }
+
+        /* --- Health Form Specifics --- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #8b9bb4;
+            font-size: 0.9em;
+        }
+
+        .cyber-input {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px;
+            color: white;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+
+        .cyber-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+            outline: none;
+        }
+
+        .vitals-preview {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+        }
+
+        .vital-card {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        
+        .vital-val { font-size: 1.5em; font-weight: bold; color: var(--success-color); }
+        .vital-lbl { font-size: 0.8em; color: #888; }
+
+        /* --- Buttons --- */
+        .cyber-btn {
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 12px 20px;
+            font-size: 0.9em;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            font-weight: bold;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .cyber-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .cyber-btn:hover {
+            background: rgba(0, 242, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+            color: white;
+        }
+
+        .cyber-btn:hover::before { left: 100%; }
+
+        .btn-danger { border-color: var(--danger-color); color: var(--danger-color); }
+        .btn-danger:hover { background: rgba(255, 42, 42, 0.1); box-shadow: 0 0 20px rgba(255, 42, 42, 0.3); }
+
+        .btn-success { border-color: var(--success-color); color: var(--success-color); animation: pulseGreen 2s infinite; }
+        .btn-success:hover { background: rgba(0, 255, 157, 0.1); box-shadow: 0 0 20px var(--success-color); }
+
+        /* --- Modal Styles --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            z-index: 3000; display: none; justify-content: center; align-items: center;
+        }
+
+        .cyber-modal {
+            background: #111; border: 1px solid var(--primary-color);
+            padding: 40px; width: 400px; text-align: center;
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
+            position: relative;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 90% 100%, 0 100%);
+        }
+
+        /* --- Animations --- */
+        @keyframes gridMove { 0% { background-position: 0 0; } 100% { background-position: 0 40px; } }
+        @keyframes glitch { 
+            0% { transform: skew(0deg); } 
+            20% { transform: skew(-2deg); } 
+            40% { transform: skew(2deg); } 
+            60% { transform: skew(0deg); } 
+            80% { transform: skew(1deg); } 
+            100% { transform: skew(0deg); } 
+        }
+        @keyframes panelEntrance {
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes pulseGreen {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 157, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 157, 0); }
+        }
+
+        .hidden { display: none !important; }
+
+        /* Utility */
+        .row-btns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 30px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="cyber-grid"></div>
+    <div class="vignette"></div>
+    <div class="scanlines"></div>
+
+    <div id="intro-sequence" class="intro-container">
+        <div class="nexus-logo">NEO CARE | MEDLINK</div>
+        <div class="boot-log" id="boot-log"></div>
+    </div>
+
+    <div id="main-menu" class="main-container hidden">
+        <div class="cards-wrapper">
+            
+            <div class="nav-card" onclick="initLogin('pharma')">
+                <div class="card-icon">👤</div>
+                <div class="card-title">ملف المريض</div>
+                <div class="card-desc">الوصول للسجلات الطبية، الروشتات الإلكترونية، وتشخيصات الطبيب.</div>
+            </div>
+
+            <div class="nav-card" onclick="initLogin('lab')">
+                <div class="card-icon">🧬</div>
+                <div class="card-title">المعمل والتحاليل</div>
+                <div class="card-desc">استعراض نتائج العينات، صور الدم، وتقارير الفحص المجهري.</div>
+            </div>
+
+            <div class="nav-card" style="border-color: rgba(0, 255, 157, 0.3);" onclick="window.location.href='NEOCAREHEALH.html'">
+                <div class="card-icon">🩺</div>
+                <div class="card-title" style="color: var(--success-color)">Form Health</div>
+                </div>
+
+        </div>
+    </div>
+
+    <div id="pharma" class="panel">
+        <div class="panel-header">
+            <span class="panel-title">ملف المريض <span class="status-badge">العناية</span></span>
+            <button class="cyber-btn" onclick="goHome()">خروج</button>
+        </div>
+        <div class="form-grid">
+            <div class="input-group">
+                <label>الاسم بالكامل</label>
+                <input type="text" class="cyber-input" value="أحمد كمال" readonly style="color: var(--primary-color); font-weight: bold;">
+            </div>
+            <div class="input-group">
+                <label>الرقم الطبي / السن</label>
+                <input type="text" class="cyber-input" value="#4829 (45 سنة)" readonly>
+            </div>
+            <div class="input-group">
+                <label>التشخيص الحالي</label>
+                <input type="text" class="cyber-input" value="التهاب رئوي حاد" readonly>
+            </div>
+            <div class="input-group">
+                <label>تاريخ الكشف</label>
+                <input type="text" class="cyber-input" value="14/12/2025" readonly>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; border: 1px dashed rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+            <label style="color:var(--primary-color)">💊 آخر روشتة إلكترونية:</label>
+            <h3 style="margin: 5px 0; font-size: 1.4em;">Augmentin 1g, Panadol Extra</h3>
+        </div>
+
+        <div class="row-btns">
+            <button class="cyber-btn" onclick="genericAction('PDF')">📄 تحميل PDF</button>
+            <button class="cyber-btn" onclick="openOTP('history')">🗂️ روشتات سابقة</button>
+            <button class="cyber-btn btn-success" onclick="checkAvailability()">🔍 التحقق من توفر الدواء</button>
+            <button class="cyber-btn btn-danger" onclick="openOTP('approve')">⚠️ اعتماد وصرف الروشتة</button>
+        </div>
+    </div>
+
+    <div id="lab" class="panel">
+        <div class="panel-header">
+            <span class="panel-title">صفحة التحاليل</span>
+            <button class="cyber-btn" onclick="goHome()">خروج</button>
+        </div>
+        
+        <div class="form-grid">
+             <div class="input-group">
+                <label>اسم المريض</label>
+                <input type="text" class="cyber-input" value="أحمد كمال" readonly>
+            </div>
+            <div class="input-group">
+                <label>المختبر المسؤول</label>
+                <input type="text" class="cyber-input" id="lab-branch-val" value="..." readonly>
+            </div>
+            <div class="input-group">
+                <label>نوع الفحص</label>
+                <input type="text" class="cyber-input" value="صورة دم (CBC)" readonly>
+            </div>
+            <div class="input-group">
+                <label>حالة العينة</label>
+                <input type="text" class="cyber-input" value="لم يتم التحليل" readonly style="color: var(--danger-color); border-color: var(--danger-color);">
+            </div>
+            <div class="input-group">
+                <label>توقيت السحب</label>
+                <input type="text" class="cyber-input" value="09:30 AM" readonly>
+            </div>
+        </div>
+        
+        <div class="vitals-preview" style="margin-bottom: 20px; opacity: 0.5;">
+            <div class="vital-card">
+                <div class="vital-lbl">WBCs</div>
+                <div class="vital-val">--</div>
+            </div>
+            <div class="vital-card">
+                <div class="vital-lbl">RBCs</div>
+                <div class="vital-val">--</div>
+            </div>
+            <div class="vital-card">
+                <div class="vital-lbl">HB</div>
+                <div class="vital-val">--</div>
+            </div>
+        </div>
+        
+        <div class="row-btns">
+            <button class="cyber-btn" onclick="genericAction('Print')">📄 طباعة نموذج الطلب</button>
+            <button class="cyber-btn" onclick="openOTP('lab_history')">🗂️ أرشيف التحاليل</button>
+            <button class="cyber-btn btn-danger" style="grid-column: span 2;" onclick="openOTP('lab_entry')">⚠️ إدخال النتائج (للمختصين)</button>
+        </div>
+    </div>
+
+    <div id="health_form" class="panel">
+        <div class="panel-header">
+            <span class="panel-title" style="color: var(--success-color)">Form Health (تسجيل الحالة)</span>
+            <button class="cyber-btn" onclick="goHome()">إلغاء</button>
+        </div>
+
+        <div class="form-grid">
+            <div class="input-group">
+                <label>ضغط الدم (mmHg)</label>
+                <input type="text" class="cyber-input" placeholder="مثال: 120/80" id="hf-bp">
+            </div>
+            <div class="input-group">
+                <label>معدل النبض (BPM)</label>
+                <input type="number" class="cyber-input" placeholder="مثال: 75" id="hf-hr">
+            </div>
+            <div class="input-group">
+                <label>نسبة السكر (mg/dL)</label>
+                <input type="number" class="cyber-input" placeholder="مثال: 110" id="hf-sugar">
+            </div>
+            <div class="input-group">
+                <label>درجة الحرارة (C°)</label>
+                <input type="number" class="cyber-input" placeholder="مثال: 37.0" id="hf-temp">
+            </div>
+            <div class="input-group" style="grid-column: span 2;">
+                <label>ملاحظات التمريض</label>
+                <textarea class="cyber-input" rows="3" placeholder="أية أعراض جانبية أو شكاوى..."></textarea>
+            </div>
+        </div>
+
+        <div class="vitals-preview">
+            <div class="vital-card" style="border-color: var(--success-color)">
+                <div class="vital-lbl">حالة النظام</div>
+                <div class="vital-val" style="font-size: 1em;">متصل بأجهزة القياس</div>
+            </div>
+        </div>
+
+        <div class="row-btns" style="display: flex;">
+            <button class="cyber-btn" style="border-color: var(--success-color); color: var(--success-color); width: 100%;" onclick="submitHealthForm()">
+                💾 حفظ المؤشرات
+            </button>
+        </div>
+    </div>
+
+    <div id="login-modal" class="modal-overlay">
+        <div class="cyber-modal">
+            <h3 style="color: white; margin-top: 0;">تسجيل دخول آمن</h3>
+            <div class="input-group">
+                <select id="login-branch" class="cyber-input">
+                    <option value="صيدلية الروضة - الفرع الرئيسي">صيدلية الروضة - الفرع الرئيسي</option>
+                    <option value="معمل الشفاء - فرع 1">معمل الشفاء - فرع 1</option>
+                    <option value="صيدلية د. مجدي (مناوب)">صيدلية د. مجدي (مناوب)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <input type="password" id="login-code" class="cyber-input" placeholder="ACCESS CODE" style="text-align: center; letter-spacing: 5px;">
+            </div>
+            <button class="cyber-btn" onclick="verifyLogin()" style="width: 100%; margin-top: 10px;">AUTH REQUEST</button>
+            <button class="cyber-btn btn-danger" onclick="closeLogin()" style="width: 100%; margin-top: 10px; border: none;">CANCEL</button>
+        </div>
+    </div>
+
+    <div id="otp-modal" class="modal-overlay">
+        <div class="cyber-modal">
+            <h3 style="color: var(--danger-color); margin-top: 0;">⚠️ تأكيد إجراء حساس</h3>
+            <p style="color: #aaa; font-size: 0.9em;">أدخل رمز المصادقة الثنائية</p>
+            <input type="password" id="otp-input" class="cyber-input" placeholder="____" maxlength="4" style="text-align: center; font-size: 2em; letter-spacing: 10px; width: 60%; margin: 20px auto; display: block;">
+            <button class="cyber-btn btn-danger" onclick="verifyOTP()">تأكيد</button>
+            <button class="cyber-btn" onclick="closeOTP()" style="margin-top: 10px; border: none; color: #666;">إلغاء</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Cinematic Boot Sequence ---
+        const logLines = [
+            "Initializing NEO CARE Kernel v1.0...",
+            "Loading Biometric Modules...",
+            "Decrypting User Database...",
+            "Establishing Secure Connection...",
+            "NEO CARE System Ready."
+        ];
+        
+        let logIndex = 0;
+        const logElement = document.getElementById('boot-log');
+
+        function typeLog() {
+            if (logIndex < logLines.length) {
+                const div = document.createElement('div');
+                div.textContent = "> " + logLines[logIndex];
+                logElement.appendChild(div);
+                logIndex++;
+                setTimeout(typeLog, 500); // سرعة الكتابة
+            } else {
+                setTimeout(() => {
+                    document.getElementById('intro-sequence').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('intro-sequence').classList.add('hidden');
+                        document.getElementById('main-menu').classList.remove('hidden');
+                    }, 1000);
+                }, 800);
+            }
+        }
+
+        window.onload = typeLog;
+
+        // --- 2. Navigation Logic ---
+        let pendingTarget = null;
+
+        function initLogin(target) {
+            pendingTarget = target;
+            document.getElementById('login-modal').style.display = 'flex';
+        }
+
+        function closeLogin() {
+            document.getElementById('login-modal').style.display = 'none';
+        }
+
+        function verifyLogin() {
+            const code = document.getElementById('login-code').value;
+            const branch = document.getElementById('login-branch').value;
+            
+            // محاكاة دخول بسيط
+            if (code.length > 0) {
+                closeLogin();
+                
+                // تحديث اسم الفرع في صفحة المعمل إذا تم اختيارها
+                if(pendingTarget === 'lab') {
+                    document.getElementById('lab-branch-val').value = branch;
+                }
+                
+                showInterface(pendingTarget);
+            } else {
+                alert("رمز الدخول مطلوب");
+            }
+        }
+
+        function showInterface(id) {
+            document.getElementById('main-menu').classList.add('hidden');
+            
+            // إخفاء كل البانلز
+            document.querySelectorAll('.panel').forEach(p => {
+                p.classList.remove('active');
+                p.classList.add('hidden');
+            });
+
+            // إظهار المطلوب
+            const target = document.getElementById(id);
+            if(target) {
+                target.classList.remove('hidden');
+                // تأخير بسيط للأنيميشن
+                setTimeout(() => {
+                    target.classList.add('active');
+                }, 50);
+            }
+        }
+
+        function goHome() {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            setTimeout(() => {
+                document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+                document.getElementById('main-menu').classList.remove('hidden');
+            }, 300);
+        }
+
+        // --- 3. Form Health Logic ---
+        function submitHealthForm() {
+            const bp = document.getElementById('hf-bp').value;
+            const hr = document.getElementById('hf-hr').value;
+
+            if(!bp || !hr) {
+                alert("يرجى ملء البيانات الأساسية (ضغط الدم والنبض)");
+                return;
+            }
+
+            const btn = document.querySelector('#health_form .cyber-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "جاري الرفع للسحابة...";
+            
+            setTimeout(() => {
+                alert("✅ تم تحديث المؤشرات الحيوية بنجاح في ملف المريض.");
+                btn.innerHTML = originalText;
+                document.getElementById('hf-bp').value = "";
+                document.getElementById('hf-hr').value = "";
+                document.getElementById('hf-sugar').value = "";
+                document.getElementById('hf-temp').value = "";
+            }, 1500);
+        }
+
+        // --- 4. OTP Logic & Actions ---
+        let currentAction = '';
+
+        function openOTP(action) {
+            currentAction = action;
+            document.getElementById('otp-modal').style.display = 'flex';
+        }
+
+        function closeOTP() {
+            document.getElementById('otp-modal').style.display = 'none';
+        }
+
+        function verifyOTP() {
+            const input = document.getElementById('otp-input');
+            if(input.value === '2077') {
+                closeOTP();
+                
+                if(currentAction === 'history' || currentAction === 'lab_history') {
+                    alert("📂 عرض السجل التاريخي:\n- Ciprofar 500mg\n- Vitamin D3");
+                } else if (currentAction === 'approve') {
+                    alert("✅ تم صرف الروشتة واعتمادها.");
+                } else if (currentAction === 'lab_entry') {
+                    alert("✅ تم فتح نموذج إدخال النتائج (وضع التحرير).");
+                }
+                
+                input.value = '';
+            } else {
+                alert("❌ رمز خاطئ.");
+                input.value = '';
+            }
+        }
+        
+        function checkAvailability() {
+            const btn = document.querySelector('.btn-success');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ جاري البحث...';
+            
+            setTimeout(() => {
+                const available = Math.random() > 0.2;
+                if(available) alert('✅ الدواء متوفر في الصيدلية الرئيسية.\nالكمية: 14 علبة\nالرف: B-12');
+                else alert('⚠️ الدواء غير متوفر حالياً في هذا الفرع.');
+                btn.innerHTML = originalText;
+            }, 1500);
+        }
+
+        function genericAction(txt) {
+            alert("جاري تنفيذ الإجراء: " + txt);
+        }
+
+    </script>
+</body>
+</html>
